@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mercado inmobiliario · Santa Fe</title>
+  <meta name="description" content="Dashboard de departamentos en venta en Ciudad de Santa Fe." />
+  <style>
+    :root{
+      --bg:#08131f; --panel:#0e1e2d; --panel2:#132638; --line:#294157;
+      --text:#f4efe7; --muted:#a9bac8; --copper:#c98d63; --copper2:#e0aa7d;
+      --ok:#79b99a; --danger:#e89a95; --shadow:0 16px 50px rgba(0,0,0,.22);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(180deg,#07111c,#0a1724 38%,#08131f);color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1500px;margin:auto;padding:30px}
+    .hero{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:24px}
+    .eyebrow{letter-spacing:.16em;text-transform:uppercase;color:var(--copper2);font-size:12px;font-weight:800}
+    h1{font-family:Georgia,'Times New Roman',serif;font-size:clamp(34px,5vw,62px);line-height:.98;margin:8px 0 10px;font-weight:500}
+    .subtitle{color:var(--muted);max-width:760px;line-height:1.5}
+    .date-pill{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:10px 14px;border-radius:999px;color:var(--muted);white-space:nowrap}
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:20px 0}
+    .card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+    .kpi-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+    .kpi-value{font-family:Georgia,serif;font-size:31px;margin-top:6px}
+    .filters{display:grid;grid-template-columns:1.5fr repeat(5,1fr);gap:10px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    input,select,button{font:inherit}
+    input,select{width:100%;background:#091724;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;outline:none}
+    input:focus,select:focus{border-color:var(--copper)}
+    .range-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+    .toggles{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .toggle{display:flex;align-items:center;gap:8px;background:#091724;border:1px solid var(--line);padding:9px 11px;border-radius:999px;color:var(--muted);font-size:13px}
+    .toggle input{width:auto}
+    .actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+    button,.btn{border:1px solid var(--line);background:#132638;color:var(--text);padding:10px 14px;border-radius:10px;cursor:pointer;text-decoration:none}
+    button.primary{background:var(--copper);border-color:var(--copper);color:#1a100a;font-weight:800}
+    button:hover{filter:brightness(1.08)}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:28px 0 12px}
+    .section-title h2{font-family:Georgia,serif;font-weight:500;margin:0;font-size:25px}
+    .count{color:var(--muted);font-size:13px}
+    .chart{display:flex;align-items:flex-end;gap:10px;height:210px;padding-top:20px;overflow-x:auto}
+    .bar-wrap{height:100%;min-width:90px;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:6px}
+    .bar-value{text-align:center;font-size:11px;color:var(--text)}
+    .bar{background:linear-gradient(180deg,var(--copper2),var(--copper));border-radius:8px 8px 2px 2px;min-height:3px}
+    .bar-label{text-align:center;color:var(--muted);font-size:11px;line-height:1.2;height:30px}
+    .table-card{background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:var(--shadow)}
+    .table-scroll{overflow:auto;max-height:690px}
+    table{border-collapse:collapse;width:100%;min-width:1450px;font-size:13px}
+    th{position:sticky;top:0;z-index:2;background:#12283a;color:#d9e4ec;text-align:left;padding:12px 10px;border-bottom:1px solid var(--line);cursor:pointer;white-space:nowrap}
+    td{padding:11px 10px;border-bottom:1px solid rgba(41,65,87,.55);vertical-align:top}
+    tr:hover td{background:rgba(201,141,99,.05)}
+    .num{text-align:right;font-variant-numeric:tabular-nums}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:rgba(201,141,99,.12);border:1px solid rgba(201,141,99,.3);color:#f0c4a3;white-space:nowrap}
+    .yes{color:var(--ok);font-weight:700}
+    a{color:#e4ad83}
+    .empty{padding:50px;text-align:center;color:var(--muted)}
+    .footer{color:#7f95a7;font-size:12px;line-height:1.5;margin:22px 0}
+    .import-note{color:var(--muted);font-size:12px;margin-top:8px}
+    @media(max-width:1100px){
+      .grid{grid-template-columns:repeat(2,1fr)}
+      .filters{grid-template-columns:repeat(2,1fr)}
+      .hero{align-items:flex-start;flex-direction:column}
+    }
+    @media(max-width:650px){
+      .wrap{padding:18px}
+      .grid,.filters{grid-template-columns:1fr}
+      h1{font-size:40px}
+    }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">OLIMPO · INTELIGENCIA DE MERCADO</div>
+      <h1>Departamentos en venta<br>Ciudad de Santa Fe</h1>
+      <div class="subtitle">Base interactiva para explorar precios de oferta, superficies, USD/m², ubicación y comparables. Los filtros afectan simultáneamente los indicadores, el gráfico y la tabla.</div>
+    </div>
+    <div id="captureDate" class="date-pill"></div>
+  </header>
+
+  <section class="grid">
+    <div class="card"><div class="kpi-label">Publicaciones filtradas</div><div class="kpi-value" id="kpiCount">—</div></div>
+    <div class="card"><div class="kpi-label">Mediana precio</div><div class="kpi-value" id="kpiPrice">—</div></div>
+    <div class="card"><div class="kpi-label">Mediana USD/m²</div><div class="kpi-value" id="kpiUsdM2">—</div></div>
+    <div class="card"><div class="kpi-label">Superficie promedio</div><div class="kpi-value" id="kpiM2">—</div></div>
+  </section>
+
+  <section class="card">
+    <div class="filters">
+      <div class="field">
+        <label>Buscar</label>
+        <input id="search" placeholder="Dirección, barrio, edificio, inmobiliaria…" />
+      </div>
+      <div class="field"><label>Zona</label><select id="zone"><option value="">Todas</option></select></div>
+      <div class="field"><label>Dormitorios</label><select id="beds"><option value="">Todos</option></select></div>
+      <div class="field"><label>Condición</label><select id="condition"><option value="">Todas</option></select></div>
+      <div class="field"><label>Precio USD</label><div class="range-row"><input id="priceMin" type="number" placeholder="Mín."/><input id="priceMax" type="number" placeholder="Máx."/></div></div>
+      <div class="field"><label>USD/m²</label><div class="range-row"><input id="ppmMin" type="number" placeholder="Mín."/><input id="ppmMax" type="number" placeholder="Máx."/></div></div>
+      <div class="field"><label>Superficie m²</label><div class="range-row"><input id="m2Min" type="number" placeholder="Mín."/><input id="m2Max" type="number" placeholder="Máx."/></div></div>
+      <div class="field"><label>Baños</label><select id="baths"><option value="">Todos</option></select></div>
+      <div class="field"><label>Cocheras</label><select id="parking"><option value="">Todas</option><option value="1">Con cochera</option><option value="0">Sin cochera</option></select></div>
+    </div>
+
+    <div class="toggles">
+      <label class="toggle"><input id="comparables" type="checkbox"> Solo comparables Zeus (2–3 dorm.)</label>
+      <label class="toggle"><input id="candioti" type="checkbox"> Solo Candioti Norte / Sur</label>
+      <label class="toggle"><input id="premium" type="checkbox"> Solo USD/m² ≥ 2.000</label>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="reset">Limpiar filtros</button>
+      <button id="exportCsv">Exportar resultados CSV</button>
+      <label class="btn" for="csvInput">Cargar CSV temporal</label>
+      <input id="csvInput" type="file" accept=".csv,text/csv" style="display:none">
+    </div>
+    <div class="import-note">“Cargar CSV” sirve para analizar otra base durante esa sesión del navegador. No modifica los datos guardados en GitHub.</div>
+  </section>
+
+  <div class="section-title"><h2>USD/m² promedio por zona</h2><div class="count" id="chartCount"></div></div>
+  <section class="card"><div id="chart" class="chart"></div></section>
+
+  <div class="section-title"><h2>Base filtrada</h2><div class="count" id="resultCount"></div></div>
+  <section class="table-card">
+    <div class="table-scroll">
+      <table>
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">
+    Fuente principal: publicaciones públicas relevadas de ZonaProp. Los valores representan precios de oferta, no precios de cierre. La muestra puede contener publicaciones del mismo edificio o producto y debe interpretarse como herramienta de inteligencia comercial, no como tasación.
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+const cols = [
+  ["Dirección","Dirección"],["Zona macro","Zona"],["Barrio / sector","Barrio / sector"],
+  ["Precio USD","Precio USD"],["m² totales","m²"],["USD/m²","USD/m²"],
+  ["Dormitorios","Dorm."],["Baños","Baños"],["Cocheras","Coch."],
+  ["Condición","Condición"],["Amenities / atributos","Amenities"],
+  ["Inmobiliaria / anunciante","Anunciante"],["URL fuente","Fuente"]
+];
+let baseData = Array.isArray(window.PROPERTIES) ? [...window.PROPERTIES] : [];
+let sortKey = "USD/m²", sortDir = -1;
+
+const $ = id => document.getElementById(id);
+const fmtUSD = n => n == null || n === "" ? "—" : new Intl.NumberFormat("es-AR",{style:"currency",currency:"USD",maximumFractionDigits:0}).format(Number(n));
+const fmtN = (n,d=0) => n == null || n === "" ? "—" : new Intl.NumberFormat("es-AR",{maximumFractionDigits:d}).format(Number(n));
+const median = arr => {
+  const a=arr.filter(x=>Number.isFinite(Number(x))).map(Number).sort((a,b)=>a-b);
+  if(!a.length) return null;
+  const m=Math.floor(a.length/2);
+  return a.length%2?a[m]:(a[m-1]+a[m])/2;
+};
+const avg = arr => {
+  const a=arr.filter(x=>Number.isFinite(Number(x))).map(Number);
+  return a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
+};
+function unique(key){return [...new Set(baseData.map(x=>x[key]).filter(x=>x!==null&&x!==undefined&&x!==""))].sort((a,b)=>String(a).localeCompare(String(b),"es",{numeric:true}));}
+function fillSelect(id,key){
+  const el=$(id), first=el.options[0];
+  el.innerHTML=""; el.appendChild(first);
+  unique(key).forEach(v=>{const o=document.createElement("option");o.value=v;o.textContent=v;el.appendChild(o);});
+}
+function initFilters(){
+  fillSelect("zone","Zona macro"); fillSelect("beds","Dormitorios"); fillSelect("condition","Condición"); fillSelect("baths","Baños");
+  const dates=baseData.map(x=>x["Fecha captura"]).filter(Boolean).sort();
+  $("captureDate").textContent = dates.length ? "Captura: "+dates[dates.length-1] : "Base de mercado";
+}
+function numVal(id){const v=$(id).value.trim(); return v===""?null:Number(v)}
+function currentFiltered(){
+  const q=$("search").value.trim().toLowerCase();
+  const zone=$("zone").value, beds=$("beds").value, condition=$("condition").value, baths=$("baths").value, parking=$("parking").value;
+  const pmin=numVal("priceMin"),pmax=numVal("priceMax"),ppmmin=numVal("ppmMin"),ppmmax=numVal("ppmMax"),mmin=numVal("m2Min"),mmax=numVal("m2Max");
+  return baseData.filter(r=>{
+    const hay=[r["Dirección"],r["Zona macro"],r["Barrio / sector"],r["Amenities / atributos"],r["Inmobiliaria / anunciante"],r["Observaciones"]].join(" ").toLowerCase();
+    if(q && !hay.includes(q)) return false;
+    if(zone && String(r["Zona macro"])!==zone) return false;
+    if(beds && String(r["Dormitorios"])!==beds) return false;
+    if(condition && String(r["Condición"])!==condition) return false;
+    if(baths && String(r["Baños"])!==baths) return false;
+    if(parking==="1" && !(Number(r["Cocheras"])>0)) return false;
+    if(parking==="0" && Number(r["Cocheras"])>0) return false;
+    const price=Number(r["Precio USD"]), ppm=Number(r["USD/m²"]), m2=Number(r["m² totales"]);
+    if(pmin!==null && price<pmin) return false; if(pmax!==null && price>pmax) return false;
+    if(ppmmin!==null && ppm<ppmmin) return false; if(ppmmax!==null && ppm>ppmmax) return false;
+    if(mmin!==null && m2<mmin) return false; if(mmax!==null && m2>mmax) return false;
+    if($("comparables").checked && String(r["Comparable 2–3 dorm."]||"").toLowerCase()!=="sí") return false;
+    if($("candioti").checked && !String(r["Zona macro"]||"").toLowerCase().includes("candioti")) return false;
+    if($("premium").checked && ppm<2000) return false;
+    return true;
+  });
+}
+function renderKPIs(data){
+  $("kpiCount").textContent=data.length;
+  $("kpiPrice").textContent=fmtUSD(median(data.map(x=>x["Precio USD"])));
+  $("kpiUsdM2").textContent=(median(data.map(x=>x["USD/m²"]))==null?"—":"USD "+fmtN(median(data.map(x=>x["USD/m²"])),0));
+  $("kpiM2").textContent=(avg(data.map(x=>x["m² totales"]))==null?"—":fmtN(avg(data.map(x=>x["m² totales"])),0)+" m²");
+}
+function renderChart(data){
+  const groups={};
+  data.forEach(r=>{
+    const z=r["Zona macro"]||"Sin zona", v=Number(r["USD/m²"]);
+    if(!Number.isFinite(v)) return;
+    (groups[z]??=[]).push(v);
+  });
+  const entries=Object.entries(groups).map(([z,a])=>({z,v:avg(a),n:a.length})).sort((a,b)=>b.v-a.v);
+  const max=Math.max(1,...entries.map(x=>x.v));
+  $("chart").innerHTML=entries.length?entries.map(x=>`
+    <div class="bar-wrap" title="${x.z}: USD ${fmtN(x.v,0)}/m² · ${x.n} avisos">
+      <div class="bar-value">USD ${fmtN(x.v,0)}</div>
+      <div class="bar" style="height:${Math.max(3,(x.v/max)*145)}px"></div>
+      <div class="bar-label">${x.z}<br><span style="opacity:.7">${x.n}</span></div>
+    </div>`).join(""):'<div class="empty">No hay datos para graficar.</div>';
+  $("chartCount").textContent=entries.length+" zonas";
+}
+function renderHead(){
+  $("thead").innerHTML=cols.map(([key,label])=>`<th data-key="${key}">${label}${sortKey===key?(sortDir===1?" ▲":" ▼"):""}</th>`).join("");
+  document.querySelectorAll("th").forEach(th=>th.onclick=()=>{
+    const k=th.dataset.key;
+    if(sortKey===k) sortDir*=-1; else {sortKey=k;sortDir=1}
+    update();
+  });
+}
+function cell(key,r){
+  const v=r[key];
+  if(key==="Precio USD") return `<td class="num">${fmtUSD(v)}</td>`;
+  if(key==="m² totales") return `<td class="num">${fmtN(v,0)}</td>`;
+  if(key==="USD/m²") return `<td class="num"><strong>${v==null?"—":"USD "+fmtN(v,0)}</strong></td>`;
+  if(["Dormitorios","Baños","Cocheras"].includes(key)) return `<td class="num">${fmtN(v,0)}</td>`;
+  if(key==="Condición") return `<td><span class="badge">${v??"—"}</span></td>`;
+  if(key==="URL fuente") return `<td>${v?`<a href="${String(v).replace(/"/g,"&quot;")}" target="_blank" rel="noopener">Abrir aviso</a>`:"—"}</td>`;
+  return `<td>${v??"—"}</td>`;
+}
+function renderTable(data){
+  const sorted=[...data].sort((a,b)=>{
+    const av=a[sortKey], bv=b[sortKey];
+    if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return -1;
+    const an=Number(av),bn=Number(bv);
+    if(Number.isFinite(an)&&Number.isFinite(bn)) return (an-bn)*sortDir;
+    return String(av).localeCompare(String(bv),"es",{numeric:true})*sortDir;
+  });
+  $("tbody").innerHTML=sorted.length?sorted.map(r=>`<tr>${cols.map(([k])=>cell(k,r)).join("")}</tr>`).join(""):`<tr><td colspan="${cols.length}" class="empty">No hay publicaciones que coincidan con los filtros.</td></tr>`;
+  $("resultCount").textContent=sorted.length+" publicaciones";
+}
+function update(){const d=currentFiltered();renderKPIs(d);renderChart(d);renderHead();renderTable(d);}
+function reset(){
+  ["search","zone","beds","condition","priceMin","priceMax","ppmMin","ppmMax","m2Min","m2Max","baths","parking"].forEach(id=>$(id).value="");
+  ["comparables","candioti","premium"].forEach(id=>$(id).checked=false);
+  sortKey="USD/m²";sortDir=-1;update();
+}
+function csvEscape(v){if(v==null)return "";const s=String(v);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+function exportCsv(){
+  const d=currentFiltered();
+  const headers=Object.keys(baseData[0]||{});
+  const csv=[headers.map(csvEscape).join(","),...d.map(r=>headers.map(h=>csvEscape(r[h])).join(","))].join("\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="departamentos_santa_fe_filtrados.csv";a.click();URL.revokeObjectURL(a.href);
+}
+function parseCSV(text){
+  const rows=[];let row=[],cell="",q=false;
+  for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];
+    if(q){if(c==='"'&&n==='"'){cell+='"';i++;}else if(c==='"'){q=false;}else cell+=c;}
+    else{if(c==='"')q=true;else if(c===','){row.push(cell);cell="";}else if(c==='\n'){row.push(cell);rows.push(row);row=[];cell="";}else if(c!=='\r')cell+=c;}
+  }
+  if(cell.length||row.length){row.push(cell);rows.push(row);}
+  if(rows.length<2)return [];
+  const h=rows[0].map(x=>x.trim());
+  return rows.slice(1).filter(r=>r.some(x=>x.trim()!=="")).map(r=>{
+    const o={};h.forEach((k,i)=>{let v=r[i]??"";if(["ID","Precio USD","m² totales","USD/m²","Ambientes","Dormitorios","Baños","Cocheras","Expensas ARS"].includes(k)&&v!==""){const n=Number(v.replace(/\./g,"").replace(",","."));if(Number.isFinite(n))v=n;}o[k]=v===""?null:v;});return o;
+  });
+}
+$("reset").onclick=reset;
+$("exportCsv").onclick=exportCsv;
+$("csvInput").addEventListener("change",e=>{
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();reader.onload=()=>{const parsed=parseCSV(reader.result);if(parsed.length){baseData=parsed;initFilters();reset();alert("CSV cargado: "+parsed.length+" filas.");}else alert("No pude interpretar el CSV.");};reader.readAsText(file,"utf-8");
+});
+["search","zone","beds","condition","priceMin","priceMax","ppmMin","ppmMax","m2Min","m2Max","baths","parking","comparables","candioti","premium"].forEach(id=>{
+  $(id).addEventListener(["search","priceMin","priceMax","ppmMin","ppmMax","m2Min","m2Max"].includes(id)?"input":"change",update);
+});
+initFilters();renderHead();update();
+</script>
+</body>
+</html>
